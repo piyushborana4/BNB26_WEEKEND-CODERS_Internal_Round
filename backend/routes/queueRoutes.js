@@ -4,6 +4,7 @@ const {
 	joinQueue,
 	processNextUser
 } = require("../services/queueService");
+const { checkRequest, recordRequest } = require("../services/antiBotService");
 
 const router = express.Router();
 
@@ -12,6 +13,34 @@ router.post("/join", async (req, res) => {
 
 	if (!name || !email) {
 		res.status(400).json({ error: "name and email are required" });
+		return;
+	}
+
+	const requesterId =
+		req.body.sessionId ||
+		req.get("x-session-id") ||
+		req.ip ||
+		req.socket.remoteAddress;
+	const requestCheck = checkRequest(requesterId);
+
+	const recordedRequest = recordRequest(requesterId);
+
+	if (
+		requestCheck.reason === "BLOCKED" ||
+		recordedRequest.reason === "BLOCKED" ||
+		recordedRequest.blocked
+	) {
+		res.status(429).json({ error: "Requester is temporarily blocked" });
+		return;
+	}
+
+	if (requestCheck.reason === "RATE_LIMITED") {
+		res.status(429).json({ error: "Too many requests" });
+		return;
+	}
+
+	if (!requestCheck.allowed || !recordedRequest.recorded) {
+		res.status(400).json({ error: "Invalid requester identifier" });
 		return;
 	}
 
