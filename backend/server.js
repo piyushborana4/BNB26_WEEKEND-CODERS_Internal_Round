@@ -6,6 +6,7 @@ const eventRoutes = require("./routes/eventRoutes");
 const queueRoutes = require("./routes/queueRoutes");
 const bookingRoutes = require("./routes/bookingRoutes");
 const statisticsRoutes = require("./routes/statisticsRoutes");
+const simulationRoutes = require("./routes/simulationRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -21,6 +22,7 @@ app.use("/api/event", eventRoutes);
 app.use("/api", queueRoutes);
 app.use("/api", bookingRoutes);
 app.use("/api", statisticsRoutes);
+app.use("/api/simulation", simulationRoutes);
 app.use("/api/bookings", bookingRoutes);
 
 if (require.main === module) {

@@ -1,5 +1,7 @@
 const express = require("express");
 const database = require("../database");
+const antiBotService = require("../services/antiBotService");
+const simulationService = require("../services/simulationService");
 
 const router = express.Router();
 
@@ -14,6 +16,25 @@ const get = (query, parameters = []) =>
 			resolve(row);
 		});
 	});
+
+router.get("/statistics", (req, res) => {
+	try {
+		const latestSimulationResults = simulationService.getSimulationResults();
+
+		res.json({
+			antiBot: antiBotService.getSecurityStats(),
+			simulations: {
+				latest: latestSimulationResults,
+				normalTraffic:
+					simulationService.getSimulationResults("normalTraffic"),
+				botAttack: simulationService.getSimulationResults("botAttack"),
+				flashCrowd: simulationService.getSimulationResults("flashCrowd")
+			}
+		});
+	} catch (error) {
+		res.status(500).json({ error: "Unable to fetch statistics" });
+	}
+});
 
 router.get("/core-statistics", async (req, res) => {
 	try {
